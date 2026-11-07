@@ -217,7 +217,25 @@
 				initializing = false;
 			};
 
-			if (!Engine.isWebGLAvailable()) {
+			// Release the temporary capability-check context immediately so it cannot
+			// compete with the game's WebGL context for the browser's context limit.
+			function isWebGLAvailable() {
+				var testCanvas = document.createElement('canvas');
+				var testContext;
+				try {
+					testContext = testCanvas.getContext('webgl');
+				} catch (e) {
+					return false;
+				}
+				if (!testContext)
+					return false;
+				var loseContext = testContext.getExtension('WEBGL_lose_context');
+				if (loseContext)
+					loseContext.loseContext();
+				return true;
+			}
+
+			if (!isWebGLAvailable()) {
 				displayFailureNotice('WebGL not available');
 			} else {
 				setStatusMode('indeterminate');
@@ -245,4 +263,3 @@
 	//]]></script>
 </body>
 </html>
-
